@@ -1,0 +1,290 @@
+{
+    "model_type": "diffusion_cond",
+    "sample_size": 160000,
+    "sample_rate": 16000,
+    "audio_channels": 1,
+    "model": {
+        "pretransform": {
+            "type": "autoencoder",
+            "iterate_batch": true,
+            "config": {
+                "encoder": {
+                    "type": "oobleck",
+                    "config": {
+                        "in_channels": 1,
+                        "channels": 128,
+                        "c_mults": [
+                            1,
+                            2,
+                            4,
+                            8,
+                            16
+                        ],
+                        "strides": [
+                            2,
+                            2,
+                            4,
+                            4,
+                            10
+                        ],
+                        "latent_dim": 128,
+                        "use_snake": true
+                    }
+                },
+                "decoder": {
+                    "type": "oobleck",
+                    "config": {
+                        "out_channels": 1,
+                        "channels": 128,
+                        "c_mults": [
+                            1,
+                            2,
+                            4,
+                            8,
+                            16
+                        ],
+                        "strides": [
+                            2,
+                            2,
+                            4,
+                            4,
+                            10
+                        ],
+                        "latent_dim": 64,
+                        "use_snake": true,
+                        "final_tanh": false
+                    }
+                },
+                "bottleneck": {
+                    "type": "vae"
+                },
+                "latent_dim": 64,
+                "downsampling_ratio": 640,
+                "io_channels": 1
+            }
+        },
+        "conditioning": {
+            "configs": [
+                {
+                    "id": "text_prompt",
+                    "type": "t5",
+                    "config": {
+                        "t5_model_name": "google/flan-t5-base",
+                        "max_length": 128,
+                        "option": true,
+                        "clean_speech_embedding": true,
+                        "per_sample_routing": true
+                    }
+                },
+                {
+                    "id": "seconds_start",
+                    "type": "number",
+                    "config": {
+                        "min_val": 0,
+                        "max_val": 512
+                    }
+                },
+                {
+                    "id": "seconds_total",
+                    "type": "number",
+                    "config": {
+                        "min_val": 0,
+                        "max_val": 512
+                    }
+                },
+                {
+                    "id": "clip_feature",
+                    "type": "post_process",
+                    "config": {
+                        "use_learnable_mask": true,
+                        "frame_per_second": 8,
+                        "feature_dim": 1024,
+                        "use_abs_pos_emb": true,
+                        "max_duration": 10,
+                        "option": true
+                    }
+                },
+                {
+                    "id": "sync_feature",
+                    "type": "post_process",
+                    "config": {
+                        "use_learnable_mask": true,
+                        "frame_per_second": 24,
+                        "target_per_second": 25,
+                        "feature_dim": 768,
+                        "max_duration": 10
+                    }
+                },
+                {
+                    "id": "trans_cap",
+                    "type": "gemma_t5",
+                    "config": {
+                        "model_name": "google/t5gemma-ml-ml-ul2",
+                        "max_length": 196,
+                        "non_speech_embedding": true,
+                        "per_sample_routing": true
+                    }
+                },
+                {
+                    "id": "audio_prompt",
+                    "type": "pretransform",
+                    "config": {
+                        "sample_rate": 16000,
+                        "use_model_pretransform": true,
+                        "output_dim": 64,
+                        "option": true
+                    }
+                }
+            ],
+            "cond_dim": 1024
+        },
+        "diffusion": {
+            "cross_attention_cond_ids": [
+                "clip_feature",
+                "text_prompt",
+                "seconds_start",
+                "seconds_total"
+            ],
+            "add_cross_attention_cond_ids": [
+                "trans_cap"
+            ],
+            "global_cond_ids": [
+                "seconds_start",
+                "seconds_total"
+            ],
+            "additional_cond_ids": [
+                "sync_feature"
+            ],
+            "prepend_cond_ids": [
+                "audio_prompt"
+            ],
+            "type": "dit",
+            "config": {
+                "io_channels": 64,
+                "embed_dim": 1536,
+                "depth": 24,
+                "num_heads": 24,
+                "cond_token_dim": 1024,
+                "global_cond_dim": 2048,
+                "additional_cond_dim": 1024,
+                "prepend_cond_dim": 64,
+                "project_cond_tokens": true,
+                "project_additional_tokens": true,
+                "transformer_type": "continuous_transformer"
+            }
+        },
+        "io_channels": 64
+    },
+    "training": {
+        "use_ema": true,
+        "log_loss_info": false,
+        "mask_loss": true,
+        "optimizer_configs": {
+            "diffusion": {
+                "optimizer": {
+                    "type": "AdamW",
+                    "config": {
+                        "lr": 5e-05,
+                        "betas": [
+                            0.9,
+                            0.999
+                        ],
+                        "weight_decay": 0.001
+                    }
+                },
+                "learnable_token_group": {
+                    "lr": 0.00015,
+                    "weight_decay": 0.0
+                },
+                "scheduler": {
+                    "type": "MultiStageInverseLR",
+                    "config": {
+                        "stage_configs": [
+                            {
+                                "steps": 280000,
+                                "lr": 3e-05,
+                                "inv_gamma": 1000000,
+                                "power": 1.0,
+                                "final_lr": 1e-05,
+                                "linear_warmup_steps": 1000
+                            },
+                            {
+                                "steps": 10000,
+                                "lr": 1e-05,
+                                "inv_gamma": 1000000,
+                                "power": 1.5,
+                                "final_lr": 1e-06
+                            },
+                            {
+                                "steps": 10000,
+                                "lr": 1e-06,
+                                "inv_gamma": 1000000,
+                                "power": 2.0,
+                                "final_lr": 1e-07
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "checkpoint": {
+            "filename": "{step}",
+            "every_n_train_steps": 50000,
+            "save_top_k": 1,
+            "monitor": "step",
+            "mode": "max"
+        },
+        "demo": {
+            "demo_every": 50000,
+            "demo_steps": 100,
+            "num_demos": 3,
+            "demo_cond_from_batch": false,
+            "demo_cond_note": "Open-source release: the training-time demo_cond block was redacted down to three inference-ready examples (V2A / V2S / V2SA). The mp4/wav/npy assets referenced below live in the companion HuggingFace dataset `Dalision/cinedub_demo`; run `huggingface-cli download Dalision/cinedub_demo --local-dir examples/assets` to fetch them.",
+            "demo_cond": [
+                {
+                    "id": "v2a_vgg_00uubi",
+                    "wav_path": "examples/assets/vgg_00uubiDNU_000210.wav",
+                    "video_path": "examples/assets/vgg_00uubiDNU_000210.mp4",
+                    "clip_feature": "examples/assets/features/vgg_00uubiDNU_000210.clip.npy",
+                    "sync_feature": "examples/assets/features/vgg_00uubiDNU_000210.sync.npy",
+                    "text_prompt": "A fast, melodic run on an electric keyboard transitions into a rhythmic organ riff with percussive, vocal-like effects.",
+                    "trans_cap": "none_speech",
+                    "seconds_start": 0.0,
+                    "seconds_total": 10.0
+                },
+                {
+                    "id": "v2s_lrs3_demo01",
+                    "wav_path": "examples/assets/lrs3_demo01.wav",
+                    "video_path": "examples/assets/lrs3_demo01.mp4",
+                    "clip_feature": "examples/assets/features/lrs3_demo01.clip.npy",
+                    "sync_feature": "examples/assets/features/lrs3_demo01.sync.npy",
+                    "text_prompt": "clean speech",
+                    "trans_cap": "A young man speaks in a clear, neutral, conversational tone, close to the mic, at a moderate pace, saying: <S>Effective approach, or is it that he cannot tolerate a higher dose because of the estrogenic burden.<E>",
+                    "seconds_start": 0.0,
+                    "seconds_total": 8.0
+                },
+                {
+                    "id": "v2sa_movie_dialogue_01",
+                    "wav_path": "examples/assets/movie_dialogue_01.wav",
+                    "video_path": "examples/assets/movie_dialogue_01.mp4",
+                    "clip_feature": "examples/assets/features/movie_dialogue_01.clip.npy",
+                    "sync_feature": "examples/assets/features/movie_dialogue_01.sync.npy",
+                    "text_prompt": "A very faint, low-frequency ambient hum is audible in the background throughout the clip.",
+                    "trans_cap": "A middle-aged man says in a clear, medium-pitched voice with a calm, slightly weary tone: <S>I'm gonna walk it.<E>. Another man replies with a questioning tone: <S>Walk?<E>. The first man confirms: <S>Mhm.<E>. The second man then says, his voice conveying confusion: <S>What? Hold on.<E>",
+                    "seconds_start": 0.0,
+                    "seconds_total": 6.8
+                }
+            ],
+            "demo_cfg_scales": [
+                2.5,
+                7
+            ],
+            "demo_task": [
+                "VTS",
+                "TTS",
+                "VA",
+                "VTA"
+            ]
+        }
+    }
+}

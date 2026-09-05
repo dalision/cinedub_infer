@@ -1,0 +1,71 @@
+# ============================================================
+# CineDub — .gitignore (open-source inference release)
+# ============================================================
+
+# --- Model checkpoints & weights (fetch from HuggingFace) ---
+weights/*
+!weights/.gitkeep
+
+# --- Experiment / generation outputs (auto-created by demo_infer.sh) ---
+exp/*
+!exp/README.md
+!exp/.gitkeep
+
+# --- Common checkpoint extensions ---
+*.ckpt
+*.safetensors
+*.pth
+*.pt
+*.bin
+
+# --- NOTE: examples/assets/*.mp4 and *.wav ARE committed (small demo assets).
+# Only large derived features are ignored:
+examples/assets/features/
+examples/assets/*.npy
+
+# --- Training / inference side products ---
+generation/
+samples/
+tensorboard/
+logs/
+log/
+wandb/
+*.log
+nohup.out
+tmp_exp_data/
+
+# --- Secrets ---
+.env
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# --- Temporary files ---
+tmp/
+temp/
+*.tmp
+*.bak
+*.bak.*
+
+# --- Large archives should not be committed ---
+*.zip
+*.tar
+*.tar.gz
+*.tar.enc

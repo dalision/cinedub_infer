@@ -1,0 +1,70 @@
+# cinedub env (torch 2.10.0+cu128, CUDA 12.8). Python 3.10.
+
+# --- Core scientific stack ---
+numpy==1.26.4
+scipy==1.15.3
+pandas==2.3.3
+packaging==25.0
+PyYAML==6.0.3
+six==1.16.0
+PyWavelets==1.8.0
+
+# --- torch/torchvision/torchaudio: install first from the PyTorch index
+# (see README). Left unpinned here so pip skips them if the CUDA-matched
+# build is already installed.
+
+# --- HuggingFace + model loading ---
+accelerate==1.12.0
+huggingface_hub==0.36.2
+hf-xet==1.2.0
+safetensors==0.7.0
+transformers==4.57.6
+sentencepiece==0.2.1
+
+# --- Lightning / training scaffolding used at inference for LightningModule loads ---
+pytorch-lightning==2.6.1
+lightning-utilities==0.15.2
+torchmetrics==1.8.2
+
+# --- Diffusion + attention plumbing ---
+ema-pytorch==0.7.9
+k-diffusion==0.1.1.post1
+vector-quantize-pytorch==1.27.20
+einops==0.8.2
+einops-exts==0.0.4
+local-attention==1.11.2
+alias-free-torch==0.0.6
+x-transformers            # imported by stable_audio_tools.models.lm_backbone / dit
+beartype==0.22.9
+
+# --- Audio codec + processing ---
+encodec==0.1.1
+descript-audio-codec==1.0.0
+laion_clap==1.1.7
+soundfile==0.13.1
+pyworld==0.3.5
+
+# --- Video + image ---
+moviepy==1.0.3
+opencv-python==4.11.0.86
+Pillow==12.1.0
+open_clip_torch==3.2.0
+
+# Synchformer visual-sync encoder class (weights auto-fetched at runtime from hkchengrex/MMAudio HF repo)
+mmaudio @ git+https://github.com/hkchengrex/MMAudio.git
+
+# --- NLP / phonemization ---
+nltk==3.9.2
+num2words==0.5.14
+inflect==7.5.0
+g2p_en                    # imported lazily by conditioners.py (phoneme pipeline)
+
+# --- Utility ---
+tqdm==4.67.1
+wandb==0.24.1             # imported at pipeline scaffolding level; keep to avoid ImportError
+
+# --- Optional (uncomment if you need it) ---
+# matplotlib==3.10.8       # only needed for training-time visualizations
+# natten                   # only needed for neighborhood attention configs (heavy build)
+# deepspeed                # only needed for the FusedAdam optimizer (training)
+# plotly / umap-learn      # only needed for stable_audio_tools.interface.aeiou viz utils

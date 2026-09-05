@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+message: "If you use CineDub in your research, please cite the paper below."
+title: "CineDub: Scaling End-to-End Video Dubbing to Multi-Speaker Dialogues with Coherent Sound Effects"
+license: MIT
+repository-code: "https://github.com/dalision/cinedub_infer"
+url: "https://cinedub2026.github.io/"
+authors:
+  - family-names: "Dai"
+    given-names: "Yusheng"
+    alias: "dalision"
+  - family-names: "Wang"
+    given-names: "Kangdi"
+  - family-names: "Gao"
+    given-names: "Baolong"
+  - family-names: "Jiang"
+    given-names: "Yuxuan"
+  - family-names: "Wang"
+    given-names: "Weiqiang"
+  - family-names: "Ke"
+    given-names: "Qiuhong"
+  - family-names: "Cai"
+    given-names: "Jianfei"
+identifiers:
+  - type: other
+    value: "arXiv:2608.15734"
+    description: "arXiv preprint"
+preferred-citation:
+  type: conference-paper
+  title: "CineDub: Scaling End-to-End Video Dubbing to Multi-Speaker Dialogues with Coherent Sound Effects"
+  authors:
+    - family-names: "Dai"
+      given-names: "Yusheng"
+    - family-names: "Wang"
+      given-names: "Kangdi"
+    - family-names: "Gao"
+      given-names: "Baolong"
+    - family-names: "Jiang"
+      given-names: "Yuxuan"
+    - family-names: "Wang"
+      given-names: "Weiqiang"
+    - family-names: "Ke"
+      given-names: "Qiuhong"
+    - family-names: "Cai"
+      given-names: "Jianfei"
+  year: 2026
+  collection-title: "Proceedings of the 34th ACM International Conference on Multimedia (MM '26)"
+  publisher:
+    name: "ACM"
+  url: "https://arxiv.org/abs/2608.15734"
